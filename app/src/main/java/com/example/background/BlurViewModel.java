@@ -20,11 +20,19 @@ import android.arch.lifecycle.ViewModel;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import com.example.background.workers.BlurWorker;
+
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
+
 public class BlurViewModel extends ViewModel {
 
-    private Uri mImageUri;
+    private Uri imageUri;
+    private WorkManager workManager;
 
     public BlurViewModel() {
+        workManager = WorkManager.getInstance();
     }
 
     /**
@@ -32,7 +40,7 @@ public class BlurViewModel extends ViewModel {
      * @param blurLevel The amount to blur the image
      */
     void applyBlur(int blurLevel) {
-
+        workManager.enqueue(OneTimeWorkRequest.from(BlurWorker.class));
     }
 
     private Uri uriOrNull(String uriString) {
@@ -46,14 +54,14 @@ public class BlurViewModel extends ViewModel {
      * Setters
      */
     void setImageUri(String uri) {
-        mImageUri = uriOrNull(uri);
+        imageUri = uriOrNull(uri);
     }
 
     /**
      * Getters
      */
     Uri getImageUri() {
-        return mImageUri;
+        return imageUri;
     }
 
 }
