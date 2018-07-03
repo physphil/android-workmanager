@@ -19,13 +19,16 @@ package com.example.background;
 import android.arch.lifecycle.ViewModel;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.example.background.workers.BlurWorker;
+import com.example.background.workers.CleanupWorker;
+import com.example.background.workers.SaveImageToFileWorker;
 
 import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
-import androidx.work.WorkRequest;
 
 public class BlurViewModel extends ViewModel {
 
@@ -38,13 +41,28 @@ public class BlurViewModel extends ViewModel {
 
     /**
      * Create the WorkRequest to apply the blur and save the resulting image
+     *
      * @param blurLevel The amount to blur the image
      */
     void applyBlur(int blurLevel) {
-        WorkRequest blurRequest = new OneTimeWorkRequest.Builder(BlurWorker.class)
+        OneTimeWorkRequest cleanRequest = new OneTimeWorkRequest.Builder(CleanupWorker.class).build();
+        OneTimeWorkRequest blurRequest = new OneTimeWorkRequest.Builder(BlurWorker.class)
                 .setInputData(createInputDataForUri())
                 .build();
-        workManager.enqueue(blurRequest);
+        OneTimeWorkRequest saveRequest = new OneTimeWorkRequest.Builder(SaveImageToFileWorker.class).build();
+
+        // Start with clean directory and first blur request
+        WorkContinuation continuation = workManager.beginWith(cleanRequest)
+                .then(blurRequest);
+
+        // Add another blur request for each blur level
+        for (int i = 1; i < blurLevel; i++) {
+            continuation.then(OneTimeWorkRequest.from(BlurWorker.class));
+        }
+
+        // Add final save image to file request
+        continuation.then(saveRequest)
+                .enqueue();
     }
 
     private Uri uriOrNull(String uriString) {
