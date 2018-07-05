@@ -79,6 +79,11 @@ public class BlurActivity extends AppCompatActivity {
             }
         });
 
+        // Cancel work if selected
+        mCancelButton.setOnClickListener(view -> {
+            mViewModel.cancelWork();
+        });
+
         // Observe status of saving file work
         mViewModel.getSavedWorkStatus().observe(this, workStatuses -> {
             if (workStatuses == null || workStatuses.isEmpty()) {
