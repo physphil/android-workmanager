@@ -29,6 +29,8 @@ import android.widget.RadioGroup;
 
 import com.bumptech.glide.Glide;
 
+import androidx.work.WorkStatus;
+
 
 public class BlurActivity extends AppCompatActivity {
 
@@ -63,6 +65,20 @@ public class BlurActivity extends AppCompatActivity {
 
         // Setup blur image file button
         mGoButton.setOnClickListener(view -> mViewModel.applyBlur(getBlurLevel()));
+
+        // Observe status of saving file work
+        mViewModel.getSavedWorkStatus().observe(this, workStatuses -> {
+            if (workStatuses == null || workStatuses.isEmpty()) {
+                return;
+            }
+
+            WorkStatus status = workStatuses.get(0);
+            if (status.getState().isFinished()) {
+                showWorkFinished();
+            } else {
+                showWorkInProgress();
+            }
+        });
     }
 
     /**

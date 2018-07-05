@@ -16,6 +16,7 @@
 
 package com.example.background;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.ViewModel;
 import android.net.Uri;
 import android.text.TextUtils;
@@ -24,19 +25,24 @@ import com.example.background.workers.BlurWorker;
 import com.example.background.workers.CleanupWorker;
 import com.example.background.workers.SaveImageToFileWorker;
 
+import java.util.List;
+
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
+import androidx.work.WorkStatus;
 
 public class BlurViewModel extends ViewModel {
 
     private Uri imageUri;
     private WorkManager workManager;
+    private LiveData<List<WorkStatus>> savedWorkStatus;
 
     public BlurViewModel() {
         workManager = WorkManager.getInstance();
+        savedWorkStatus = workManager.getStatusesByTag(Constants.TAG_OUTPUT);
     }
 
     /**
@@ -49,7 +55,9 @@ public class BlurViewModel extends ViewModel {
         OneTimeWorkRequest blurRequest = new OneTimeWorkRequest.Builder(BlurWorker.class)
                 .setInputData(createInputDataForUri())
                 .build();
-        OneTimeWorkRequest saveRequest = new OneTimeWorkRequest.Builder(SaveImageToFileWorker.class).build();
+        OneTimeWorkRequest saveRequest = new OneTimeWorkRequest.Builder(SaveImageToFileWorker.class)
+                .addTag(Constants.TAG_OUTPUT)
+                .build();
 
         // Start with clean directory and first blur request
         WorkContinuation continuation = workManager.beginUniqueWork(Constants.IMAGE_MANIPULATION_WORK_NAME, ExistingWorkPolicy.REPLACE, cleanRequest)
@@ -94,4 +102,7 @@ public class BlurViewModel extends ViewModel {
         return imageUri;
     }
 
+    LiveData<List<WorkStatus>> getSavedWorkStatus() {
+        return savedWorkStatus;
+    }
 }
