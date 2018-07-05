@@ -37,6 +37,7 @@ import androidx.work.WorkStatus;
 public class BlurViewModel extends ViewModel {
 
     private Uri imageUri;
+    private Uri outputUri;
     private WorkManager workManager;
     private LiveData<List<WorkStatus>> savedWorkStatus;
 
@@ -95,11 +96,19 @@ public class BlurViewModel extends ViewModel {
         imageUri = uriOrNull(uri);
     }
 
+    public void setOutputUri(String outputUri) {
+        this.outputUri = uriOrNull(outputUri);
+    }
+
     /**
      * Getters
      */
     Uri getImageUri() {
         return imageUri;
+    }
+
+    public Uri getOutputUri() {
+        return outputUri;
     }
 
     LiveData<List<WorkStatus>> getSavedWorkStatus() {

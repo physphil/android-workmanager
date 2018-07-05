@@ -18,9 +18,11 @@ package com.example.background;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -66,6 +68,17 @@ public class BlurActivity extends AppCompatActivity {
         // Setup blur image file button
         mGoButton.setOnClickListener(view -> mViewModel.applyBlur(getBlurLevel()));
 
+        // Setup See File button
+        mOutputButton.setOnClickListener(view -> {
+            Uri finalUri = mViewModel.getOutputUri();
+            if (finalUri != null) {
+                Intent showImageIntent = new Intent(Intent.ACTION_VIEW, finalUri);
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(showImageIntent);
+                }
+            }
+        });
+
         // Observe status of saving file work
         mViewModel.getSavedWorkStatus().observe(this, workStatuses -> {
             if (workStatuses == null || workStatuses.isEmpty()) {
@@ -75,6 +88,13 @@ public class BlurActivity extends AppCompatActivity {
             WorkStatus status = workStatuses.get(0);
             if (status.getState().isFinished()) {
                 showWorkFinished();
+
+                // Get final output URI and set in ViewModel
+                String outputUri = status.getOutputData().getString(Constants.KEY_IMAGE_URI, null);
+                if (!TextUtils.isEmpty(outputUri)) {
+                    mOutputButton.setVisibility(View.VISIBLE);
+                    mViewModel.setOutputUri(outputUri);
+                }
             } else {
                 showWorkInProgress();
             }
