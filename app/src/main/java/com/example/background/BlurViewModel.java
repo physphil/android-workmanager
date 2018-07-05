@@ -19,13 +19,13 @@ package com.example.background;
 import android.arch.lifecycle.ViewModel;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.example.background.workers.BlurWorker;
 import com.example.background.workers.CleanupWorker;
 import com.example.background.workers.SaveImageToFileWorker;
 
 import androidx.work.Data;
+import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkContinuation;
 import androidx.work.WorkManager;
@@ -52,7 +52,7 @@ public class BlurViewModel extends ViewModel {
         OneTimeWorkRequest saveRequest = new OneTimeWorkRequest.Builder(SaveImageToFileWorker.class).build();
 
         // Start with clean directory and first blur request
-        WorkContinuation continuation = workManager.beginWith(cleanRequest)
+        WorkContinuation continuation = workManager.beginUniqueWork(Constants.IMAGE_MANIPULATION_WORK_NAME, ExistingWorkPolicy.REPLACE, cleanRequest)
                 .then(blurRequest);
 
         // Add another blur request for each blur level
